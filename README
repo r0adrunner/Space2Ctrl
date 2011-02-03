@@ -1,0 +1,6 @@
+This little hack for X turns the spacebar key into another control key when used in combination.
+When used alone, it behaves like the ordinary space bar on the key release event.
+Especially useful with Emacs.
+
+Compile with:
+g++ -o Space2Ctrl Space2Ctrl.cpp -L/usr/X11R6/lib -lX11
