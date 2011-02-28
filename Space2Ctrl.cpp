@@ -107,9 +107,9 @@ static void handle_event(void) {
     
     ctrl_down = false;
     if(space_down){  
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 9999999, 4);   
+      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 255, 4);   
       XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 9999999, 4);  
+      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 255, 4);  
       XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
     }
     
@@ -119,15 +119,15 @@ static void handle_event(void) {
     
     space_down = false;	
     if(!key_combo && !ctrl_down){ 
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 9999999, 0);   
+      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 255, 0);   
       XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 9999999, 0);  
+      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 255, 0);  
       XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
     }
     if(ctrl_down){  
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 9999999, 4);   
+      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 255, 4);   
       XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 9999999, 4);  
+      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 255, 4);  
       XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
     }
     key_combo = false;
@@ -146,9 +146,9 @@ int main(void) {
   //how to get xserver display
   dpy = XOpenDisplay(getenv("DISPLAY"));
   
-  //Remap keycode 9999999 to Keysym space:
+  //Remap keycode 255 to Keysym space:
   KeySym spc=XK_space;
-  XChangeKeyboardMapping(dpy,9999999,1,&spc,1); 
+  XChangeKeyboardMapping(dpy,255,1,&spc,1); 
   XFlush(dpy);  
   
   
