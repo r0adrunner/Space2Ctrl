@@ -3,4 +3,10 @@ When used alone, it behaves like the ordinary space bar on the key release event
 Especially useful with Emacs.
 
 Compile with:
-g++ -o Space2Ctrl Space2Ctrl.cpp -L/usr/X11R6/lib -lX11
+g++ -o Space2Ctrl Space2Ctrl.cpp -L/usr/X11R6/lib -lX11 -lXtst
+
+To install libx11:
+in Ubuntu: sudo apt-get install libx11-dev
+
+To install libXTst:
+in Ubuntu: sudo apt-get install libxtst-dev

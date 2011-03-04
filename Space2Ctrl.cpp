@@ -2,10 +2,13 @@
 // and from: http://www.doctort.org/adam/nerd-notes/x11-fake-keypress-event.html
 
 // compile with:
-// g++ -o Space2Ctrl Space2Ctrl.cpp -L/usr/X11R6/lib -lX11
+// g++ -o Space2Ctrl Space2Ctrl.cpp -L/usr/X11R6/lib -lX11 -lXtst
 
 // To install libx11:
 // in Ubuntu: sudo apt-get install libx11-dev
+
+// To install libXTst:
+// in Ubuntu: sudo apt-get install libxtst-dev
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -14,6 +17,7 @@
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>
 #include <X11/Xproto.h>
+#include <X11/extensions/XTest.h>
 
 //represenation of X display
 static Display *dpy;
@@ -25,7 +29,6 @@ static Window focuswin = None;
 static Window winRoot;
 
 XEvent ev;
-XKeyEvent fake_event;
 
 // Key combos
 bool space_down = false;
@@ -51,34 +54,6 @@ static void attach_to_focuswin(void) {
   else
     sleep(1);
 }
-
-static XKeyEvent createKeyEvent(Display *display, Window &win,
-				Window &winRoot, bool press,
-				int keycode, int modifiers)
-{
-  XKeyEvent event;
-  
-  event.display     = display;
-  event.window      = win;
-  event.root        = winRoot;
-  event.subwindow   = None;
-  event.time        = CurrentTime;
-  event.x           = 1;
-  event.y           = 1;
-  event.x_root      = 1;
-  event.y_root      = 1;
-  event.same_screen = True;
-  event.keycode     = keycode;
-  event.state       = modifiers;
-  
-  if(press)
-    event.type = KeyPress;
-  else
-    event.type = KeyRelease;
-  
-  return event;
-}
-
 
 static void handle_event(void) {
   
@@ -107,10 +82,8 @@ static void handle_event(void) {
     
     ctrl_down = false;
     if(space_down){  
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 255, 4);   
-      XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 255, 4);  
-      XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
+      XTestFakeKeyEvent(dpy,255, True,0);
+      XTestFakeKeyEvent(dpy,255, False,0);
     }
     
   }
@@ -118,17 +91,9 @@ static void handle_event(void) {
   if ( (ev.xkey.type == KeyRelease) && (ev.xkey.keycode == 65) ){    // 65 = Space-bar
     
     space_down = false;	
-    if(!key_combo && !ctrl_down){ 
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 255, 0);   
-      XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 255, 0);  
-      XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
-    }
-    if(ctrl_down){  
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, true, 255, 4);   
-      XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
-      fake_event = createKeyEvent(dpy, focuswin, winRoot, false, 255, 4);  
-      XSendEvent(fake_event.display, fake_event.window, True, KeyPressMask, (XEvent *)&fake_event);
+    if(!key_combo){ 
+      XTestFakeKeyEvent(dpy,255, True,0);
+      XTestFakeKeyEvent(dpy,255, False,0);
     }
     key_combo = false;
   }
@@ -151,7 +116,7 @@ int main(void) {
   XChangeKeyboardMapping(dpy,255,1,&spc,1); 
   XFlush(dpy);  
   
-  
+ 
   //if a display dont't exist    
   if (dpy == NULL) {
     fprintf(stdout, "cannot init display\n");          
