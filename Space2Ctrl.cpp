@@ -49,7 +49,7 @@ static void attach_to_focuswin(void) {
   XGetInputFocus(dpy, &focuswin, &revert_to);
   
   if (focuswin != None){
-    XSelectInput(dpy, focuswin, FocusChangeMask | KeyPressMask | KeyReleaseMask );
+    XSelectInput(dpy, focuswin, LeaveWindowMask | FocusChangeMask | KeyPressMask | KeyReleaseMask );
   }
   else
     sleep(1);
@@ -72,7 +72,7 @@ static void handle_event(void) {
     
   }
   
-  if ( (ev.xkey.type == KeyPress) && (ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_L) || ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_R)) ) {  
+  if ( (ev.xkey.type == KeyPress) && (ev.xkey.keycode != 65) && (ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_L) || ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_R)) ) {  
     
     ctrl_down = true;
     
@@ -101,7 +101,12 @@ static void handle_event(void) {
   if ( ev.xany.type == FocusOut ) {    
     focuswin = None;
     space_down = false;
-    key_combo = false;
+    ctrl_down = false;
+  }
+  
+  if ( ev.xany.type == LeaveNotify ) {    
+    focuswin = None;
+    space_down = false;
     ctrl_down = false;
   }
   
