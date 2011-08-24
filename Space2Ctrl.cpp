@@ -75,16 +75,16 @@ static void handle_event(void) {
   if ( (ev.xkey.type == KeyPress) && (ev.xkey.keycode != 65) && (ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_L) || ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_R)) ) {  
     
     ctrl_down = true;
+    if(space_down){  
+      XTestFakeKeyEvent(dpy,255, True,0);
+      XTestFakeKeyEvent(dpy,255, False,0);
+    }
     
   }
   
   if ( (ev.xkey.type == KeyRelease) && (ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_L) || ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_R)) ) {
     
     ctrl_down = false;
-    if(space_down){  
-      XTestFakeKeyEvent(dpy,255, True,0);
-      XTestFakeKeyEvent(dpy,255, False,0);
-    }
     
   }
   
