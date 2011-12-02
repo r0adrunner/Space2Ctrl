@@ -9,6 +9,10 @@
 # 133 Left Windows Flag
 # 135 Right Menu
 
+if [ ! -f xmodmap.orig ]
+then
+xmodmap -pke > xmodmap.orig
+fi
 
 #xmodmap -e "clear Lock"				
 #xmodmap -e "keycode 66 = Meta_L"		# Caps Lock = Meta key
