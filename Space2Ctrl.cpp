@@ -1,147 +1,208 @@
-// Modified from: http://developers-blog.org/blog/default/2010/08/10/XServer-Event-Handling-C-Example
-// and from: http://www.doctort.org/adam/nerd-notes/x11-fake-keypress-event.html
+/* Ripped shamelessly from: http://emg-2.blogspot.com/2008/01/xfree86xorg-keylogger.html
 
-// compile with:
-// g++ -o Space2Ctrl Space2Ctrl.cpp -L/usr/X11R6/lib -lX11 -lXtst
+   compile with:
+   g++ -o Space2Ctrl Space2Ctrl.cpp -L/usr/X11R6/lib -lX11 -lXtst
 
-// To install libx11:
-// in Ubuntu: sudo apt-get install libx11-dev
+   To install libx11:
+   in Ubuntu: sudo apt-get install libx11-dev
 
-// To install libXTst:
-// in Ubuntu: sudo apt-get install libxtst-dev
+   To install libXTst:
+   in Ubuntu: sudo apt-get install libxtst-dev
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <X11/Xlib.h>
+   Needs module XRecord installed. To install it, add line Load "record" to Section "Module" in /etc/X11/xorg.conf like this:
+
+   Section "Module"
+   Load  "record"
+   EndSection
+
+*/
+
+#include <X11/Xlibint.h>
 #include <X11/keysym.h>
-#include <X11/XKBlib.h>
-#include <X11/Xproto.h>
+#include <X11/extensions/record.h>
 #include <X11/extensions/XTest.h>
-
-//represenation of X display
-static Display *dpy;
-
-//represenation of X window
-static Window focuswin = None;
-
-//Root window
-static Window winRoot;
-
-XEvent ev;
-
-// Key combos
-bool space_down = false;
-bool ctrl_down = false;
-bool key_combo = false;
-
-static int revert_to = 0;
-
-static int xerrors (Display *d, XErrorEvent *e)
-{
-  if (e->request_code == X_ChangeWindowAttributes && e->error_code == BadWindow) // XSelectInput()
-    {return 0;}
-  
-}
-
-static void attach_to_focuswin(void) {
-  
-  XGetInputFocus(dpy, &focuswin, &revert_to);
-  
-  if (focuswin != None){
-    XSelectInput(dpy, focuswin, LeaveWindowMask | FocusChangeMask | KeyPressMask | KeyReleaseMask );
-  }
-  else
-    sleep(1);
-}
-
-static void handle_event(void) {
-  
-  //get current event of X display
-  XNextEvent(dpy, &ev);
-  
-  if ( (ev.xkey.type == KeyPress) && (ev.xkey.keycode == 65) ) {    // 65 = Space-bar
+#include <iostream>
+using namespace std;
     
-    space_down = true;
+struct CallbackClosure {
+  Display *ctrlDisplay;
+  Display *dataDisplay;
+  int curX;
+  int curY;
+  void *initialObject;
+};
+typedef union {
+  unsigned char type;
+  xEvent event;
+  xResourceReq req;
+  xGenericReply reply;
+  xError error;
+  xConnSetupPrefix setup;
+} XRecordDatum;
     
-  }
-  
-  if ( (ev.xkey.type == KeyPress) && (ev.xkey.keycode != 65)) {     // 65 = Space-bar
-    
-    if ( space_down ) {key_combo = true;}
-    
-  }
-  
-  if ( (ev.xkey.type == KeyPress) && (ev.xkey.keycode != 65) && (ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_L) || ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_R)) ) {  
-    
-    ctrl_down = true;
-    if(space_down){  
-      XTestFakeKeyEvent(dpy,255, True,0);
-      XTestFakeKeyEvent(dpy,255, False,0);
+class Space2Ctrl {
+  string m_displayName;
+  CallbackClosure userData;
+  std::pair<int,int> recVer;
+  XRecordRange *recRange;
+  XRecordClientSpec recClientSpec;
+  XRecordContext recContext;
+
+  void setupXTestExtension(){
+    int ev, er, ma, mi;
+    if(!XTestQueryExtension(userData.ctrlDisplay, &ev, &er, &ma, &mi)){
+      cout << "%sThere is no XTest extension loaded to X server.\n" << endl;
+      throw exception();
     }
-    
   }
-  
-  if ( (ev.xkey.type == KeyRelease) && (ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_L) || ev.xkey.keycode == XKeysymToKeycode(dpy,XK_Control_R)) ) {
+      
+  void setupRecordExtension() {
+    XSynchronize(userData.ctrlDisplay, True);
     
-    ctrl_down = false;
-    
-  }
-  
-  if ( (ev.xkey.type == KeyRelease) && (ev.xkey.keycode == 65) ){    // 65 = Space-bar
-    
-    space_down = false;	
-    if(!key_combo){ 
-      XTestFakeKeyEvent(dpy,255, True,0);
-      XTestFakeKeyEvent(dpy,255, False,0);
+    // Record extension exists?
+    if (!XRecordQueryVersion (userData.ctrlDisplay,
+			      &recVer.first, &recVer.second))
+      {
+	cout << "%sThere is no RECORD extension loaded to X server.\n"
+	  "You must add following line:\n"
+	  "   Load  \"record\"\n"
+	  "to /etc/X11/xorg.conf, in section `Module'.%s" << endl;
+	throw exception();
+      }
+       
+    recRange = XRecordAllocRange ();
+    if (!recRange) {
+      // "Could not alloc record range object!\n";
+      throw exception();
     }
-    key_combo = false;
+    recRange->device_events.first = KeyPress;
+    recRange->device_events.last = ButtonRelease;
+    recClientSpec = XRecordAllClients;
+    
+    // Get context with our configuration
+    recContext = XRecordCreateContext (userData.ctrlDisplay, 0,
+				       &recClientSpec, 1, &recRange, 1);
+    if (!recContext) {
+      cout << "Could not create a record context!" << endl;
+      throw exception();
+    }
   }
-  
-  if ( ev.xany.type == FocusOut ) {    
-    focuswin = None;
-    space_down = false;
-    ctrl_down = false;
-  }
-  
-  if ( ev.xany.type == LeaveNotify ) {    
-    focuswin = None;
-    space_down = false;
-    ctrl_down = false;
-  }
-  
-}
+    
+  // Called from Xserver when new event occurs.
+  static void eventCallback(XPointer priv, XRecordInterceptData *hook) {
+    if (hook->category != XRecordFromServer) {
+      XRecordFreeData(hook);
+      return;
+    }
+    CallbackClosure *userData = (CallbackClosure *)priv;
+    XRecordDatum *data = (XRecordDatum *) hook->data;
+    static bool space_down = false;
+    static bool ctrl_down = false;
+    static bool key_combo = false; 
+    
+    if(data->event.u.u.type == KeyPress) {
+      int c = data->event.u.u.detail;
 
-int main(void) {
-  //how to get xserver display
-  dpy = XOpenDisplay(getenv("DISPLAY"));
-  
-  //Remap keycode 255 to Keysym space:
-  KeySym spc=XK_space;
-  XChangeKeyboardMapping(dpy,255,1,&spc,1); 
-  XFlush(dpy);  
-  
- 
-  //if a display dont't exist    
-  if (dpy == NULL) {
-    fprintf(stdout, "cannot init display\n");          
-    exit(1);
-  }   
-  
-  // Get the root window for the current display.
-  winRoot = XDefaultRootWindow(dpy);
-  
-  // Avoid auto repeat	
-  XkbSetDetectableAutoRepeat(dpy, True, NULL);
-  
-  // Set new error handler
-  XSetErrorHandler (xerrors);
-  
-  //daemon loop
-  while (1) {
-    if (focuswin == None)
-      attach_to_focuswin();
-    else
-      handle_event();
+      // Spacebar pressed
+      if(c==65){
+	space_down = true;
+      } 
+      // Any Ctrl key pressed
+      else if( (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_L)) || (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_R))){
+	ctrl_down = true;  
+	if(space_down){
+	  XTestFakeKeyEvent(userData->ctrlDisplay,255, True,CurrentTime);
+	  XTestFakeKeyEvent(userData->ctrlDisplay,255, False,CurrentTime);
+  	}
+      }
+      // Some other key pressed 
+      else {
+	if(space_down) {key_combo=true;}
+	else {key_combo = false;}
+      }
+    }
+
+    else if(data->event.u.u.type == KeyRelease) {
+      int c = data->event.u.u.detail;
+
+      // Spacebar released
+      if(c==65){
+	space_down = false;	
+	if(!key_combo){ 
+	  XTestFakeKeyEvent(userData->ctrlDisplay,255, True,CurrentTime);
+	  XTestFakeKeyEvent(userData->ctrlDisplay,255, False,CurrentTime);
+	}
+	key_combo = false;
+
+      } 
+      // Any Ctrl key released
+      else if( (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_L)) || (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_R))){
+	ctrl_down = false;
+	if(space_down){key_combo = true;}
+      }
+    }
+
+    // Any mouse click
+    else if(data->event.u.u.type == ButtonPress) { 
+      if(space_down) {key_combo=true;}
+      else {key_combo = false;}
+    }
+     
+    XRecordFreeData(hook);
   }
+    
+public:
+  Space2Ctrl() { }
+  ~Space2Ctrl() {
+    stop();
+  }
+    
+  bool connect(string displayName) {
+    m_displayName = displayName;
+    if (NULL == (userData.ctrlDisplay =
+		 XOpenDisplay(m_displayName.c_str())) )
+      return false;
+    if (NULL == (userData.dataDisplay =
+		 XOpenDisplay(m_displayName.c_str())) ) {
+      XCloseDisplay(userData.ctrlDisplay);
+      userData.ctrlDisplay = NULL;
+      return false;
+    }
+    // You may want to set custom X error handler here
+    
+    userData.initialObject = (void *)this;
+    setupXTestExtension();
+    setupRecordExtension();
+    return true;
+  }
+    
+  void start() {
+
+    //Remap keycode 255 to Keysym space:
+    KeySym spc=XK_space;
+    XChangeKeyboardMapping(userData.ctrlDisplay,255,1,&spc,1); 
+    XFlush(userData.ctrlDisplay);    
+
+    if (!XRecordEnableContext (userData.dataDisplay,
+			       recContext, eventCallback, (XPointer) &userData))
+      {
+	throw exception();
+      }
+    
+  }
+    
+  void stop() {
+    if(!XRecordDisableContext (userData.ctrlDisplay, recContext))
+      throw exception();
+  }
+};
+    
+int main() {
+
+  Space2Ctrl space2ctrl;
+  if(space2ctrl.connect(":0")) {
+    space2ctrl.start();
+  }
+  return 0;
 }
+    
