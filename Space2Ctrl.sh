@@ -18,7 +18,7 @@ fi
 #xmodmap -e "keycode 66 = Meta_L"		# Caps Lock = Meta key
 #xmodmap -e "add Mod1 = Meta_L"
 
-xmodmap -e "keysym space = Control_L"   	# Space bar = Left control key
+xmodmap -e "keycode 65 = Control_L"     	# Space bar = Left control key
 xmodmap -e "add control = Control_L"
 
 ./Space2Ctrl
