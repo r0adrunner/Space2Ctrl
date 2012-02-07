@@ -22,7 +22,7 @@
 #include <X11/extensions/record.h>
 #include <X11/extensions/XTest.h>
 #include <iostream>
-#include <time.h>
+#include <sys/time.h>
 //#include <stdio.h>
 using namespace std;
     
@@ -89,7 +89,13 @@ class Space2Ctrl {
       throw exception();
     }
   }
-    
+
+  static int diff_ms(timeval t1, timeval t2)
+  {
+    return (((t1.tv_sec - t2.tv_sec) * 1000000) + 
+            (t1.tv_usec - t2.tv_usec))/1000;
+  }
+  
   // Called from Xserver when new event occurs.
   static void eventCallback(XPointer priv, XRecordInterceptData *hook) {
     if (hook->category != XRecordFromServer) {
@@ -101,8 +107,7 @@ class Space2Ctrl {
     static bool space_down = false;
     static bool ctrl_down = false;
     static bool key_combo = false; 
-    static time_t startWait = 0;
-    static time_t endWait = 0;
+    static struct timeval startWait, endWait;
     
     if(data->event.u.u.type == KeyPress) {
       int c = data->event.u.u.detail;
@@ -110,7 +115,7 @@ class Space2Ctrl {
       // Spacebar pressed
       if(c==65){
 	space_down = true;
-	time (&startWait);
+	gettimeofday(&startWait, NULL);
       } 
       // Any Ctrl key pressed
       else if( (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_L)) || (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_R))){
@@ -134,11 +139,11 @@ class Space2Ctrl {
       if(c==65){
 	space_down = false;	
 	if(!key_combo){
-	  time (&endWait);
-	  if ( difftime (endWait,startWait) < 0.6 ) { // if minimum timeout elapsed since space was pressed
-	    XTestFakeKeyEvent(userData->ctrlDisplay,255, True,CurrentTime);
-	    XTestFakeKeyEvent(userData->ctrlDisplay,255, False,CurrentTime);
-	  }
+	gettimeofday(&endWait, NULL);
+	if ( diff_ms(endWait, startWait) < 600 ) { // if minimum timeout elapsed since space was pressed
+	  XTestFakeKeyEvent(userData->ctrlDisplay,255, True,CurrentTime);
+	  XTestFakeKeyEvent(userData->ctrlDisplay,255, False,CurrentTime);
+	}
 	}
 	key_combo = false;
 	
