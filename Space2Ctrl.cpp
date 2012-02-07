@@ -22,6 +22,8 @@
 #include <X11/extensions/record.h>
 #include <X11/extensions/XTest.h>
 #include <iostream>
+#include <time.h>
+//#include <stdio.h>
 using namespace std;
     
 struct CallbackClosure {
