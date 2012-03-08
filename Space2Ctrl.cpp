@@ -139,11 +139,11 @@ class Space2Ctrl {
       if(c==65){
 	space_down = false;
 	if(!key_combo){
-	gettimeofday(&endWait, NULL);
-	if ( diff_ms(endWait, startWait) < 600 ) { // if minimum timeout elapsed since space was pressed
-	  XTestFakeKeyEvent(userData->ctrlDisplay,255, True,CurrentTime);
-	  XTestFakeKeyEvent(userData->ctrlDisplay,255, False,CurrentTime);
-	}
+          gettimeofday(&endWait, NULL);
+          if ( diff_ms(endWait, startWait) < 600 ) { // if minimum timeout elapsed since space was pressed
+            XTestFakeKeyEvent(userData->ctrlDisplay,255, True,CurrentTime);
+            XTestFakeKeyEvent(userData->ctrlDisplay,255, False,CurrentTime);
+          }
 	}
 	key_combo = false;
 
