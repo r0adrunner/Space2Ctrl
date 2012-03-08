@@ -54,7 +54,7 @@ class Space2Ctrl {
 
   void setupXTestExtension(){
     int ev, er, ma, mi;
-    if(!XTestQueryExtension(userData.ctrlDisplay, &ev, &er, &ma, &mi)){
+    if (!XTestQueryExtension(userData.ctrlDisplay, &ev, &er, &ma, &mi)) {
       cout << "%sThere is no XTest extension loaded to X server.\n" << endl;
       throw exception();
     }
@@ -90,8 +90,8 @@ class Space2Ctrl {
   }
 
   static int diff_ms(timeval t1, timeval t2) {
-    return (((t1.tv_sec - t2.tv_sec) * 1000000) +
-            (t1.tv_usec - t2.tv_usec))/1000;
+    return ( ((t1.tv_sec - t2.tv_sec) * 1000000)
+             + (t1.tv_usec - t2.tv_usec) ) / 1000;
   }
 
   // Called from Xserver when new event occurs.
@@ -102,7 +102,7 @@ class Space2Ctrl {
       return;
     }
 
-    CallbackClosure *userData = (CallbackClosure *)priv;
+    CallbackClosure *userData = (CallbackClosure *) priv;
     XRecordDatum *data = (XRecordDatum *) hook->data;
     static bool space_down = false;
     static bool ctrl_down = false;
@@ -167,10 +167,11 @@ class Space2Ctrl {
     case ButtonPress:
       {
 
-        if(space_down)
-          key_combo=true;
-        else
+        if(space_down) {
+          key_combo = true;
+        } else {
           key_combo = false;
+        }
 
         break;
       }
@@ -187,8 +188,9 @@ public:
 
   bool connect(string displayName) {
     m_displayName = displayName;
-    if (NULL == (userData.ctrlDisplay = XOpenDisplay(m_displayName.c_str())) )
+    if (NULL == (userData.ctrlDisplay = XOpenDisplay(m_displayName.c_str())) ) {
       return false;
+    }
     if (NULL == (userData.dataDisplay = XOpenDisplay(m_displayName.c_str())) ) {
       XCloseDisplay(userData.ctrlDisplay);
       userData.ctrlDisplay = NULL;
@@ -197,7 +199,7 @@ public:
 
     // You may want to set custom X error handler here
 
-    userData.initialObject = (void *)this;
+    userData.initialObject = (void *) this;
     setupXTestExtension();
     setupRecordExtension();
 
@@ -206,9 +208,9 @@ public:
 
   void start() {
 
-    //Remap keycode 255 to Keysym space:
-    KeySym spc=XK_space;
-    XChangeKeyboardMapping(userData.ctrlDisplay,255,1,&spc,1);
+    // Remap keycode 255 to Keysym space:
+    KeySym spc = XK_space;
+    XChangeKeyboardMapping(userData.ctrlDisplay, 255, 1, &spc, 1);
     XFlush(userData.ctrlDisplay);
 
     if (!XRecordEnableContext(userData.dataDisplay, recContext, eventCallback,
@@ -218,8 +220,9 @@ public:
   }
 
   void stop() {
-    if (!XRecordDisableContext (userData.ctrlDisplay, recContext))
+    if (!XRecordDisableContext (userData.ctrlDisplay, recContext)) {
       throw exception();
+    }
   }
 
 };
