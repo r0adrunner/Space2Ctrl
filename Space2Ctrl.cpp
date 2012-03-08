@@ -167,7 +167,7 @@ class Space2Ctrl {
     case ButtonPress:
       {
 
-        if(space_down) {
+        if (space_down) {
           key_combo = true;
         } else {
           key_combo = false;
@@ -231,7 +231,7 @@ int main() {
 
   Space2Ctrl space2ctrl;
 
-  if(space2ctrl.connect(":0")) {
+  if (space2ctrl.connect(":0")) {
     space2ctrl.start();
   }
 
