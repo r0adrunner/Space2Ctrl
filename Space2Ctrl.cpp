@@ -25,7 +25,7 @@
 #include <sys/time.h>
 //#include <stdio.h>
 using namespace std;
-    
+
 struct CallbackClosure {
   Display *ctrlDisplay;
   Display *dataDisplay;
@@ -41,7 +41,7 @@ typedef union {
   xError error;
   xConnSetupPrefix setup;
 } XRecordDatum;
-    
+
 class Space2Ctrl {
   string m_displayName;
   CallbackClosure userData;
@@ -57,10 +57,10 @@ class Space2Ctrl {
       throw exception();
     }
   }
-      
+
   void setupRecordExtension() {
     XSynchronize(userData.ctrlDisplay, True);
-    
+
     // Record extension exists?
     if (!XRecordQueryVersion (userData.ctrlDisplay,
 			      &recVer.first, &recVer.second))
@@ -71,7 +71,7 @@ class Space2Ctrl {
 	  "to /etc/X11/xorg.conf, in section `Module'.%s" << endl;
 	throw exception();
       }
-       
+
     recRange = XRecordAllocRange ();
     if (!recRange) {
       // "Could not alloc record range object!\n";
@@ -80,7 +80,7 @@ class Space2Ctrl {
     recRange->device_events.first = KeyPress;
     recRange->device_events.last = ButtonRelease;
     recClientSpec = XRecordAllClients;
-    
+
     // Get context with our configuration
     recContext = XRecordCreateContext (userData.ctrlDisplay, 0,
 				       &recClientSpec, 1, &recRange, 1);
@@ -92,10 +92,10 @@ class Space2Ctrl {
 
   static int diff_ms(timeval t1, timeval t2)
   {
-    return (((t1.tv_sec - t2.tv_sec) * 1000000) + 
+    return (((t1.tv_sec - t2.tv_sec) * 1000000) +
             (t1.tv_usec - t2.tv_usec))/1000;
   }
-  
+
   // Called from Xserver when new event occurs.
   static void eventCallback(XPointer priv, XRecordInterceptData *hook) {
     if (hook->category != XRecordFromServer) {
@@ -106,9 +106,9 @@ class Space2Ctrl {
     XRecordDatum *data = (XRecordDatum *) hook->data;
     static bool space_down = false;
     static bool ctrl_down = false;
-    static bool key_combo = false; 
+    static bool key_combo = false;
     static struct timeval startWait, endWait;
-    
+
     if(data->event.u.u.type == KeyPress) {
       int c = data->event.u.u.detail;
 
@@ -116,16 +116,16 @@ class Space2Ctrl {
       if(c==65){
 	space_down = true;
 	gettimeofday(&startWait, NULL);
-      } 
+      }
       // Any Ctrl key pressed
       else if( (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_L)) || (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_R))){
-	ctrl_down = true;  
+	ctrl_down = true;
 	if(space_down){
 	  XTestFakeKeyEvent(userData->ctrlDisplay,255, True,CurrentTime);
 	  XTestFakeKeyEvent(userData->ctrlDisplay,255, False,CurrentTime);
   	}
       }
-      // Some other key pressed 
+      // Some other key pressed
       else {
 	if(space_down) {key_combo=true;}
 	else {key_combo = false;}
@@ -137,7 +137,7 @@ class Space2Ctrl {
 
       // Spacebar released
       if(c==65){
-	space_down = false;	
+	space_down = false;
 	if(!key_combo){
 	gettimeofday(&endWait, NULL);
 	if ( diff_ms(endWait, startWait) < 600 ) { // if minimum timeout elapsed since space was pressed
@@ -146,8 +146,8 @@ class Space2Ctrl {
 	}
 	}
 	key_combo = false;
-	
-      } 
+
+      }
       // Any Ctrl key released
       else if( (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_L)) || (c == XKeysymToKeycode(userData->ctrlDisplay,XK_Control_R))){
 	ctrl_down = false;
@@ -156,20 +156,20 @@ class Space2Ctrl {
     }
 
     // Any mouse click
-    else if(data->event.u.u.type == ButtonPress) { 
+    else if(data->event.u.u.type == ButtonPress) {
       if(space_down) {key_combo=true;}
       else {key_combo = false;}
     }
-     
+
     XRecordFreeData(hook);
   }
-    
+
 public:
   Space2Ctrl() { }
   ~Space2Ctrl() {
     stop();
   }
-    
+
   bool connect(string displayName) {
     m_displayName = displayName;
     if (NULL == (userData.ctrlDisplay =
@@ -182,34 +182,34 @@ public:
       return false;
     }
     // You may want to set custom X error handler here
-    
+
     userData.initialObject = (void *)this;
     setupXTestExtension();
     setupRecordExtension();
     return true;
   }
-    
+
   void start() {
 
     //Remap keycode 255 to Keysym space:
     KeySym spc=XK_space;
-    XChangeKeyboardMapping(userData.ctrlDisplay,255,1,&spc,1); 
-    XFlush(userData.ctrlDisplay);    
+    XChangeKeyboardMapping(userData.ctrlDisplay,255,1,&spc,1);
+    XFlush(userData.ctrlDisplay);
 
     if (!XRecordEnableContext (userData.dataDisplay,
 			       recContext, eventCallback, (XPointer) &userData))
       {
 	throw exception();
       }
-    
+
   }
-    
+
   void stop() {
     if(!XRecordDisableContext (userData.ctrlDisplay, recContext))
       throw exception();
   }
 };
-    
+
 int main() {
 
   Space2Ctrl space2ctrl;
@@ -218,4 +218,3 @@ int main() {
   }
   return 0;
 }
-    
