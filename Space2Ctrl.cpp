@@ -1,7 +1,7 @@
 /* Ripped shamelessly from: http://emg-2.blogspot.com/2008/01/xfree86xorg-keylogger.html
 
    compile with:
-   g++ -o Space2Ctrl Space2Ctrl.cpp -L/usr/X11R6/lib -lX11 -lXtst
+   g++ -o Space2Ctrl Space2Ctrl.cpp -W -Wall -L/usr/X11R6/lib -lX11 -lXtst
 
    To install libx11:
    in Ubuntu: sudo apt-get install libx11-dev
@@ -9,7 +9,8 @@
    To install libXTst:
    in Ubuntu: sudo apt-get install libxtst-dev
 
-   Needs module XRecord installed. To install it, add line Load "record" to Section "Module" in /etc/X11/xorg.conf like this:
+   Needs module XRecord installed. To install it, add line Load "record" to Section "Module" in
+   /etc/X11/xorg.conf like this:
 
    Section "Module"
    Load  "record"
@@ -105,7 +106,6 @@ class Space2Ctrl {
     CallbackClosure *userData = (CallbackClosure *) priv;
     XRecordDatum *data = (XRecordDatum *) hook->data;
     static bool space_down = false;
-    static bool ctrl_down = false;
     static bool key_combo = false;
     static struct timeval startWait, endWait;
 
@@ -121,7 +121,7 @@ class Space2Ctrl {
 
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
                     || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
-          ctrl_down = true; // ctrl pressed
+          // ctrl pressed
 
           if (space_down) { // space ctrl sequence
             XTestFakeKeyEvent(userData->ctrlDisplay, 255, True, CurrentTime);
@@ -156,7 +156,7 @@ class Space2Ctrl {
           key_combo = false;
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
                     || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
-          ctrl_down = false; // ctrl release
+          // ctrl release
 
           if (space_down)
             key_combo = true;
