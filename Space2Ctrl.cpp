@@ -24,6 +24,7 @@
 #include <X11/extensions/XTest.h>
 #include <iostream>
 #include <sys/time.h>
+#include <signal.h>
 
 using namespace std;
 
@@ -122,14 +123,12 @@ class Space2Ctrl {
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
                     || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
           // ctrl pressed
-
           if (space_down) { // space ctrl sequence
             XTestFakeKeyEvent(userData->ctrlDisplay, 255, True, CurrentTime);
             XTestFakeKeyEvent(userData->ctrlDisplay, 255, False, CurrentTime);
           }
 
         } else { // another key pressed
-
           if (space_down) {
             key_combo = true;
           } else {
@@ -147,7 +146,8 @@ class Space2Ctrl {
 
           if (!key_combo) {
             gettimeofday(&endWait, NULL);
-            if ( diff_ms(endWait, startWait) < 600 ) { // if minimum timeout elapsed since space was pressed
+            if ( diff_ms(endWait, startWait) < 600 ) {
+              // if minimum timeout elapsed since space was pressed
               XTestFakeKeyEvent(userData->ctrlDisplay, 255, True, CurrentTime);
               XTestFakeKeyEvent(userData->ctrlDisplay, 255, False, CurrentTime);
             }
@@ -157,7 +157,6 @@ class Space2Ctrl {
         } else if ( (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_L))
                     || (c == XKeysymToKeycode(userData->ctrlDisplay, XK_Control_R)) ) {
           // ctrl release
-
           if (space_down)
             key_combo = true;
         }
@@ -207,11 +206,10 @@ public:
   }
 
   void start() {
-
-    // Remap keycode 255 to Keysym space:
-    KeySym spc = XK_space;
-    XChangeKeyboardMapping(userData.ctrlDisplay, 255, 1, &spc, 1);
-    XFlush(userData.ctrlDisplay);
+    // // Remap keycode 255 to Keysym space:
+    // KeySym spc = XK_space;
+    // XChangeKeyboardMapping(userData.ctrlDisplay, 255, 1, &spc, 1);
+    // XFlush(userData.ctrlDisplay);
 
     if (!XRecordEnableContext(userData.dataDisplay, recContext, eventCallback,
                               (XPointer) &userData)) {
@@ -227,13 +225,26 @@ public:
 
 };
 
+Space2Ctrl* space2ctrl;
+
+void stop(int param) {
+  delete space2ctrl;
+  if(param == SIGTERM)
+    cout << "-- Terminating Space2Ctrl --" << endl;
+  exit(1);
+}
+
 int main() {
+  cout << "-- Starting Space2Ctrl --" << endl;
+  space2ctrl = new Space2Ctrl();
 
-  Space2Ctrl space2ctrl;
+  void (*prev_fn)(int);
 
-  if (space2ctrl.connect(":0")) {
-    space2ctrl.start();
+  prev_fn = signal (SIGTERM, stop);
+  if (prev_fn==SIG_IGN) signal (SIGTERM,SIG_IGN);
+
+  if (space2ctrl->connect(":0")) {
+    space2ctrl->start();
   }
-
   return 0;
 }
