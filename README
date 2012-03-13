@@ -2,18 +2,18 @@ This little hack for X turns the spacebar key into another control key when used
 When used alone, it behaves like the ordinary space bar on the key release event.
 Especially useful with Emacs.
 
-compile with:
+Prerequisites:
+* Install X11 and XTEST development packages. On Debian GNU/Linux derivatives,
+  $ sudo apt-get install libx11-dev libxtst-dev
+* Enable the XRecord module by adding 'Load "record"' to the Module section of /etc/X11/xorg.conf,
+e.g.:
+    Section "Module"
+            Load  "record"
+    EndSection
+
+Compilation:
 g++ -o Space2Ctrl Space2Ctrl.cpp -W -Wall -L/usr/X11R6/lib -lX11 -lXtst
 
-To install libx11:
-in Ubuntu: sudo apt-get install libx11-dev
-
-To install libXTst:
-in Ubuntu: sudo apt-get install libxtst-dev
-
-Needs module XRecord installed. To install it, add line Load "record" to Section "Module" in
-/etc/X11/xorg.conf like this:
-
-Section "Module"
-        Load  "record"
-EndSection
+Usage:
+* Load Space2Ctrl with start_Space2Ctrl
+* Unload Space2Ctrl with stop_Space2Ctrl
