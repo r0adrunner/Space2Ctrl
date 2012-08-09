@@ -1,7 +1,7 @@
 #! /bin/sh
 
 origmap=$(xmodmap -pke | grep -E "^keycode[[:blank:]]*?65")
-newmap=$(echo ${origmap} | perl -pe "s/ Control_L / space /g")
+newmap=$(echo ${origmap} | perl -pe "s/ Control_L/ space/g")
 
 xmodmap -e "$newmap"
 xmodmap -e "keycode 255 ="
