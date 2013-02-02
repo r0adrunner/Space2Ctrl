@@ -11,9 +11,6 @@ e.g.:
             Load  "record"
     EndSection
 
-Compilation:
-g++ -o Space2Ctrl Space2Ctrl.cpp -W -Wall -L/usr/X11R6/lib -lX11 -lXtst
-
 Usage:
-* Load Space2Ctrl with start_Space2Ctrl
-* Unload Space2Ctrl with stop_Space2Ctrl
+* Load Space2Ctrl with "s2cctl start"
+* Unload Space2Ctrl with "s2cctl stop"
