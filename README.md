@@ -6,6 +6,7 @@ Especially useful with Emacs.
 
 ## Prerequisites:
 * Install X11 and XTEST development packages. On Debian GNU/Linux derivatives:
+
 ```bash
 sudo apt-get install libx11-dev libxtst-dev
 ```
