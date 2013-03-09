@@ -7,7 +7,7 @@ Especially useful with Emacs.
 ## Prerequisites:
 * Install X11 and XTEST development packages. On Debian GNU/Linux derivatives:
 ```bash
-$ sudo apt-get install libx11-dev libxtst-dev
+sudo apt-get install libx11-dev libxtst-dev
 ```
 * If the program complains about a missing "XRecord" module, enable it by adding 'Load "record"' to the Module section of /etc/X11/xorg.conf:
 (This step is unnecessary in most systems)
