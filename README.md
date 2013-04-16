@@ -13,9 +13,12 @@ sudo apt-get install libx11-dev libxtst-dev
 * If the program complains about a missing "XRecord" module, enable it by adding 'Load "record"' to the Module section of /etc/X11/xorg.conf:
 (This step is unnecessary in most systems)
 e.g.:
+
+```
     Section "Module"
             Load  "record"
     EndSection
+```
 
 ## Install:
 ```bash
