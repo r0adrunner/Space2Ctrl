@@ -1,7 +1,7 @@
 CC = g++
 CFLAGS = -W -Wall -O2
 LIBS = -lX11 -lXtst
-PREFIX = /usr/local
+PREFIX = /usr
 BINPREFIX = $(PREFIX)/bin
 
 SRC = Space2Ctrl.cpp
