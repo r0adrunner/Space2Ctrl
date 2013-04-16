@@ -1,6 +1,5 @@
-/* Ripped shamelessly from: http://emg-2.blogspot.com/2008/01/xfree86xorg-keylogger.html
-
-   compile with:
+/* 
+   Compile with:
    g++ -o Space2Ctrl Space2Ctrl.cpp -W -Wall -L/usr/X11R6/lib -lX11 -lXtst
 
    To install libx11:
