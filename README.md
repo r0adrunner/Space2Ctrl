@@ -25,6 +25,9 @@ e.g.:
 make
 sudo make install
 ```
+### Arch linux
+
+Space2Ctrl is currently available via the Arch User Repository (AUR) as 'space2ctrl-git'.
 
 ## Usage:
 * Load Space2Ctrl with "s2cctl start"
