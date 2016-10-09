@@ -17,11 +17,11 @@
 
 */
 
+#include <iostream>
 #include <X11/Xlibint.h>
 #include <X11/keysym.h>
 #include <X11/extensions/record.h>
 #include <X11/extensions/XTest.h>
-#include <iostream>
 #include <sys/time.h>
 #include <signal.h>
 
