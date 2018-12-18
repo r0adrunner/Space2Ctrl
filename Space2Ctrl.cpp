@@ -277,8 +277,15 @@ void stop(int param) {
   exit(1);
 }
 
-int main() {
-  cout << "-- Starting Space2Ctrl --" << endl;
+int main(int argc, char *argv[]) {
+  cout << "-- Init script --" << endl;
+
+  // First parameter, if any, specifies which display to connect to
+  string useDisplay = ":0";
+  if ( argc == 2 ) {
+    useDisplay = argv[1];
+  }
+
   space2ctrl = new Space2Ctrl();
 
   void (*prev_fn)(int);
@@ -286,7 +293,8 @@ int main() {
   prev_fn = signal (SIGTERM, stop);
   if (prev_fn==SIG_IGN) signal (SIGTERM,SIG_IGN);
 
-  if (space2ctrl->connect(":0")) {
+  if (space2ctrl->connect(useDisplay)) {
+    cout << "-- Starting Space2Ctrl on display " << useDisplay << " --" << endl;
     space2ctrl->start();
   }
   return 0;
