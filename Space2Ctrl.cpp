@@ -296,6 +296,8 @@ int main(int argc, char *argv[]) {
   if (space2ctrl->connect(useDisplay)) {
     cout << "-- Starting Space2Ctrl on display " << useDisplay << " --" << endl;
     space2ctrl->start();
+  } else {
+    cout << "-- Error: Could not connect to display \'" << useDisplay << "\'. Not started --" << endl;
   }
   return 0;
 }
