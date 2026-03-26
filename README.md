@@ -29,6 +29,14 @@ sudo make install
 
 Space2Ctrl is currently available via the Arch User Repository (AUR) as 'space2ctrl-git'.
 
+### NixOS Linux
+
+```bash
+nix-shell -p xorg.libX11 xorg.libXtst xorg.libXext xorg.libXi
+make
+mkdir -p ~/bin && cp s2c s2cctl ~/bin/
+```
+
 ## Usage:
 * Load Space2Ctrl with "s2cctl start"
 * Unload Space2Ctrl with "s2cctl stop"
